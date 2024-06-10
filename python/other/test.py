@@ -1,0 +1,6 @@
+val = int(input())
+str1 = input()
+list_1 = str1.split(" ")
+list_1 = list(map(int, list_1))
+average = sum(list_1) / len(list_1)
+print(average)
