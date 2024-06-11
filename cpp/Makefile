@@ -7,7 +7,7 @@ all: main
 
 .PHONY: main
 main:
-	g++ $(CFLAGS) $(APP_NAME) $(APP_NAME).$(SRC_EXT)
+	g++ $(CFLAGS) $(APP_NAME).exe $(APP_NAME).$(SRC_EXT)
 
 run:
 	./$(APP_NAME)
