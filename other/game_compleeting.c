@@ -66,7 +66,7 @@ int main() {
         px++;
         break;
     }
-    usleep(100);
+    // usleep(5000);
     //sleep(1);
     //Delay(1);
     if (isgraph(area[py][px]) && (area[py][px]!='O')) {
