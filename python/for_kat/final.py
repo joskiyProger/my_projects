@@ -31,7 +31,9 @@ age_label_old = None
 last_name_label_add_old = None
 name_label_add_old = None
 cemetery_label_old = None
-listboxes = None
+data_for_place = None
+places = None
+places_combobox = None
 
 def read_sheet(df):
     wb = load_workbook('load.xlsx')
@@ -137,7 +139,7 @@ def set_df():
     yscrollbar.grid(row=8, column=7, sticky=NS)
     table.configure(yscrollcommand=yscrollbar.set)
     for item in headers_list:
-        table.column(item, anchor=W, width=len(item) * 11)
+        table.column(item, anchor=W, width=len(item) * 9)
         table.heading(item, text=item, anchor=CENTER)
     table.grid(row=8, column=0, sticky="nsew", columnspan=6)
 
@@ -368,8 +370,8 @@ def add_fio():
     if inserted_data[2] != '' and inserted_data[3] != '' and age > -1 and cemetery_is_set:
         add_row('now', cemetery, inserted_data, str(datetime.now().year) + '_' + str(cemetery) + '.xlsx')       
 
-def check_containing(need_name, name):
-    if (len(need_name) > 0 and  need_name in name or len(need_name) > 0 and  name in need_name) or len(need_name) == 0:
+def check_containing(need_data, data):
+    if (len(need_data) > 0 and  need_data in data or len(need_data) > 0 and  data in need_data) or len(need_data) == 0:
         return 1
     else:
         return 0
@@ -389,10 +391,40 @@ def find_fio():
         if check_containing(need_name, str(names[i])) + check_containing(need_last_name, str(last_names[i])) + check_containing(need_surname, str(surnames[i])) == 3:
             table.insert('', tk.END, values=list(df.iloc[i]))  
 
+def find_places():
+    global df
+    global data_for_place
+    global table
+    global places
+    global places_combobox
+    places = []
+    table.delete(*table.get_children())
+    cemeteries = list(df['Кладбище'])
+    sectors = list(df['Номер сектора могилы'])
+    rows = list(df['Номер ряда могилы'])
+    for i in range(1, len(cemeteries)):
+        if check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip().capitalize(), str(sectors[i])) + check_containing(data_for_place[2].get().strip().capitalize(), str(rows[i])) == 3:
+            table.insert('', tk.END, values=list(df.iloc[i]))
+            if str(df['Номер места могилы'][i]) != 'nan':
+                places.append(df['Номер места могилы'][i])
+    places_combobox['values'] = places
+    # print(places)еж
+
 def find_by_place():
     global df
-    global listboxes
-    pass
+    global data_for_place
+    global table
+    table.delete(*table.get_children())
+    cemeteries = list(df['Кладбище'])
+    sectors = list(df['Номер сектора могилы'])
+    rows = list(df['Номер ряда могилы'])
+    places = list(df['Номер места могилы'])
+    for i in range(1, len(cemeteries)):
+        if check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip().capitalize(), str(sectors[i])) + check_containing(data_for_place[2].get().strip().capitalize(), str(rows[i])) + check_containing(data_for_place[3].get().strip().capitalize(), str(places[i])) == 4:
+            table.insert('', tk.END, values=list(df.iloc[i]))
+        elif check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip().capitalize(), str(sectors[i])) + check_containing(data_for_place[2].get().strip().capitalize(), str(rows[i])) + int(str(places[i]) == '1') == 4:
+            table.insert('', tk.END, values=list(df.iloc[i]))
+    # print(data_for_place[0].get())
 
 def open_main_window():
     # Создание главного окна
@@ -416,7 +448,9 @@ def open_main_window():
     global last_name_label_add_old
     global name_label_add_old
     global cemetery_label_old
-    global listboxes
+    global data_for_place
+    global places
+    global places_combobox
     root = tk.Tk()
     root.title("Работа с эксель таблицами")
     root.geometry("1250x440")
@@ -468,6 +502,7 @@ def open_main_window():
                     ).grid(row=3, column=0, sticky='we')
     surname_entry = tk.Entry(frame_find, font= 20)
     surname_entry.grid(row=3, column=1,sticky='we')
+    
 
     tk.Label(frame_find_by_place,
                     text="Выберите кладбище: ",
@@ -475,18 +510,18 @@ def open_main_window():
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
                     ).grid(row=1, column=0, sticky='we')
-    cemetery_list = ['nan', 'Покровское', 'Южное', 'Старопокровское']                
-    cemetery_listbox = tk.Spinbox(frame_find_by_place, values=cemetery_list, font= 20)
-    cemetery_listbox.grid(row=1, column=1)
+    cemeteries = ["Покровское", "Старопокровское", "Южное"]
+    cemeteries_combobox = ttk.Combobox(frame_find_by_place, values=cemeteries, font=20)
+    cemeteries_combobox.grid(row=1, column=1)
 
     tk.Label(frame_find_by_place,
                 text="Выберите сектор: ",
                 bg= '#' + str(hex(label_bg_colors))[2:],
                 anchor="e",
                 font= 20
-                ).grid(row=2, column=0, sticky='we')           
-    sector_listbox = tk.Spinbox(frame_find_by_place, values=cemetery_list, font= 20)
-    sector_listbox.grid(row=2, column=1)
+                ).grid(row=2, column=0, sticky='we')  
+    sector_for_place_entry = tk.Entry(frame_find_by_place, font= 20)
+    sector_for_place_entry.grid(row=2, column=1,sticky='we')
 
     tk.Label(frame_find_by_place,
                 text="Выберите ряд: ",
@@ -494,23 +529,29 @@ def open_main_window():
                 bg= '#' + str(hex(label_bg_colors))[2:],
                 font= 20
                 ).grid(row=3, column=0, sticky='we')
-    row_listbox = tk.Spinbox(frame_find_by_place, values=cemetery_list, font= 20)
-    row_listbox.grid(row=3, column=1)
+    row_for_place_entry = tk.Entry(frame_find_by_place, font= 20)
+    row_for_place_entry.grid(row=3, column=1,sticky='we')
+
+    button_to_find_places = tk.Button(frame_find_by_place, 
+                            text = "Найти все места",
+                            command = find_places,
+                            font=20
+                            ).grid(row=4, column=0,sticky='we', columnspan=2)
 
     tk.Label(frame_find_by_place,
                 text="Выберите место: ",
                 anchor="e",
                 bg= '#' + str(hex(label_bg_colors))[2:],
                 font= 20
-                ).grid(row=4, column=0, sticky='we')
-    place_listbox = tk.Spinbox(frame_find_by_place, values=cemetery_list, font= 20)
-    place_listbox.grid(row=4, column=1)
+                ).grid(row=5, column=0, sticky='we')
+    places_combobox = ttk.Combobox(frame_find_by_place, values=places, font=20)
+    places_combobox.grid(row=5, column=1)
 
-    listboxes = [cemetery_listbox, sector_listbox, row_listbox,]
+    data_for_place = [cemeteries_combobox, sector_for_place_entry, row_for_place_entry, places_combobox]
     tk.Button(frame_find_by_place, font= 20,
-                            text = "Добавить",
+                            text = "Найти по месту",
                             command = find_by_place,
-                            ).grid(row=5, column=0,sticky='we', columnspan=2)
+                            ).grid(row=6, column=0,sticky='we', columnspan=2)
 
     last_name_label_add = tk.Label(frame_add,
                     text="Фамилия",
@@ -652,7 +693,7 @@ def open_main_window():
     responsibility_entry.grid(row=5, column=5,sticky='we')
 
     button_to_find = tk.Button(frame_find, 
-                            text = "Найти",
+                            text = "Найти по ФИО",
                             command = find_fio,
                             ).grid(row=4,sticky='we', columnspan=2)
 
