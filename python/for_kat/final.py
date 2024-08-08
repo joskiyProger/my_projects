@@ -118,13 +118,13 @@ def set_df():
                  bg= '#' + str(hex(0xffffff))[2:],
                  font= 20
                 )
-    number_label.grid(row=8, column=0, sticky='we', columnspan=7)
+    number_label.grid(row=8, column=0, sticky='we', columnspan=8)
     number_label_old = tk.Label(frame_add_old,
                  text="Вы сейчас заполняете человека под номером "+str(len(df['Номер внесения записи'])),
                  bg= '#' + str(hex(0xffffff))[2:],
                  font= 20
                 )
-    number_label_old.grid(row=8, column=0, sticky='we', columnspan=7)
+    number_label_old.grid(row=8, column=0, sticky='we', columnspan=8)
     tk.Label(frame_find,
                  text="Файлы загружены",
                  bg= '#' + str(hex(0xffffff))[2:],
@@ -185,15 +185,18 @@ def create_new_excel(parent_func, name, inserted_data):
     inserted_data[0] = ws['A' + str(ws.max_row)].value + 1
     inserted_data[1] = str(datetime.now().year) + '.' + str(str(datetime.now().strftime("%m"))) + '.' + str(datetime.now().strftime("%d"))
     ws.append(inserted_data)
-    col_names = ['Номер внесения записи', 'Дата внесения записи', 'Фамилия умершего', 'Имя умершего', 'Отчество умершего',	'Возраст умершего',	'Дата смерти',	'Номер свидетельства о смерти из ЗАГСа',	'Каким ЗАГСом выдано свидетельство',	'Дата погребения',	'Кладбище',	'Номер сектора могилы', 'Номер ряда могилы', 'Номер места могилы',	'Размер отведенного участка земли для погребения',	'Фамилия землекопа',	'Фамилия, имя, отчество и адрес лица, взявшего на себя обязанность осуществить погребение умершего']
-    letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q']
-    nums = ['1',	'2',	'3',	'4',	'5',	'6',	'7',	'8',	'9',	'10',	'11',	'12',	'13',	'14',	'15',	'16', '17']
-    for i in range(0, 17):
+    col_names = ['Номер внесения записи', 'Дата внесения записи', 'Фамилия умершего', 'Имя умершего', 'Отчество умершего',	'Возраст умершего',	'Дата смерти',	'Номер свидетельства о смерти из ЗАГСа',	'Каким ЗАГСом выдано свидетельство', 'Документ о кремации (дата и номер)', 'Регистрационный номер кремации', 'Дата погребения',	'Кладбище',	'Номер сектора могилы', 'Номер ряда могилы', 'Номер места могилы',	'Размер отведенного участка земли для погребения',	'Фамилия землекопа',	'Фамилия, имя, отчество и адрес лица, взявшего на себя обязанность осуществить погребение умершего']
+    letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S']
+    nums = ['1',	'2',	'3',	'4',	'5',	'6',	'7',	'8',	'9',	'10',	'11',	'12',	'13',	'14',	'15',	'16', '17', '18', '19']
+    for i in range(0, 19):
         ws[letters[i] + '5'] = col_names[i]
         ws[letters[i] + '6'] = nums[i]
-    set_border(ws, 'A5:Q7')
+    set_border(ws, 'A5:S7')
     wb.save(name)
-    df.loc[len(df)+1] = inserted_data
+    
+    # df.loc[len(df)+1] = inserted_data
+    # df = df.append(inserted_data, ignore_inex=True)
+    df = pd.concat([df, pd.DataFrame([inserted_data])], ignore_index=True)
     change_label_bg_color(parent_func, inserted_data)
     table.delete(*table.get_children())
     table.insert('', tk.END, values=list(df.iloc[len(df)-1]))
@@ -207,6 +210,7 @@ def add_row(parent_func, cemetery, inserted_data, name):
     global table
     global tabs_list
     global entries
+    global df
     
     PATH = os.getcwd()
     pattern = '20\d\d_'
@@ -242,13 +246,12 @@ def add_row(parent_func, cemetery, inserted_data, name):
                 break                
         return 0
     ws.append(inserted_data)
-    set_border(ws, 'A' + str(ws.max_row) + ':' + 'Q' + str(ws.max_row))
-    
-    df.loc[len(df)+1] = inserted_data
+    set_border(ws, 'A' + str(ws.max_row) + ':' + 'S' + str(ws.max_row))
+    df = pd.concat([df, pd.DataFrame([inserted_data])], ignore_index=True)
     change_label_bg_color(parent_func, inserted_data)
     table.delete(*table.get_children())
     table.insert('', tk.END, values=list(df.iloc[len(df)-1]))
-    # Сохранение изменений
+    # Сохранение изменений старопокровское
     wb.save(PATH + '/load.xlsx')
     shutil.copy(PATH + '/load.xlsx', PATH + '/' + name)
 
@@ -267,8 +270,9 @@ def add_fio_old():
     for i in range(0, len(entries_old)-10):
         inserted_data.append(entries_old[i].get().strip().capitalize())
     for i in range(len(entries_old)-10, len(entries_old)):
-        if i == 8:
+        if i == 8 or i == 12:
             inserted_data.append(entries_old[i].get().strip().capitalize())
+            inserted_data[i] = inserted_data[i].capitalize()
         else:
             inserted_data.append(entries_old[i].get().strip())
     try:
@@ -293,14 +297,14 @@ def add_fio_old():
         number_label_old['text'] = "Запись не была произведена!"
     else:
         age_label_old['bg'] = '#ffffff'
-    if 'Покровское' == inserted_data[10]:
-        cemetery = inserted_data[10]
+    if 'Покровское' == inserted_data[12]:
+        cemetery = inserted_data[12]
         cemetery_is_set = True
-    elif 'Южное' == inserted_data[10]:
-        cemetery = inserted_data[10]
+    elif 'Южное' == inserted_data[12]:
+        cemetery = inserted_data[12]
         cemetery_is_set = True
-    elif 'Старопокровское' == inserted_data[10]:
-        cemetery = inserted_data[10]
+    elif 'Старопокровское' == inserted_data[12]:
+        cemetery = inserted_data[12]
         cemetery_is_set = True
     else:
         cemetery_is_set = False
@@ -322,18 +326,19 @@ def add_fio():
     global cemetery_label
 
     table.delete(*table.get_children())
-    inserted_data = ['', '']
+    inserted_data = ['', ''] # покровское
     for i in range(0, len(entries)-13):
         inserted_data.append(entries[i].get().strip().capitalize())
     for i in range(len(entries)-13, len(entries)-3):
-        if i == 8:
+        if i == 8 or i == 12:
             inserted_data.append(entries[i].get().strip().capitalize())
+            inserted_data[i] = inserted_data[i].capitalize()
         else:
-            inserted_data.append(entries[i].get().strip())
-
+            inserted_data.append(entries[i].get().strip())      
     try:
         inserted_data[5] = int(inserted_data[5])
         age = inserted_data[5]
+    
     except:
         age = -1
         age_label['bg'] = '#dd6666'
@@ -353,14 +358,14 @@ def add_fio():
         number_label['text'] = "Запись не была произведена!"
     else:
         age_label['bg'] = '#ffffff'
-    if 'Покровское' == inserted_data[10]:
-        cemetery = inserted_data[10]
+    if 'Покровское' == inserted_data[12]:
+        cemetery = inserted_data[12]
         cemetery_is_set = True
-    elif 'Южное' == inserted_data[10]:
-        cemetery = inserted_data[10]
+    elif 'Южное' == inserted_data[12]:
+        cemetery = inserted_data[12]
         cemetery_is_set = True
-    elif 'Старопокровское' == inserted_data[10]:
-        cemetery = inserted_data[10]
+    elif 'Старопокровское' == inserted_data[12]:
+        cemetery = inserted_data[12]
         cemetery_is_set = True
     else:
         cemetery_is_set = False
@@ -371,10 +376,19 @@ def add_fio():
         add_row('now', cemetery, inserted_data, str(datetime.now().year) + '_' + str(cemetery) + '.xlsx')       
 
 def check_containing(need_data, data):
-    if (len(need_data) > 0 and  need_data in data or len(need_data) > 0 and  data in need_data) or len(need_data) == 0:
-        return 1
-    else:
-        return 0
+    try:
+        need_data_temp = int(float(need_data))
+        data_temp = int(float(data))   
+        if (data_temp == need_data_temp):
+            return 1
+        else:
+            return 0
+        
+    except:
+        if (len(need_data) > 0 and  need_data in data or len(need_data) > 0 and  data in need_data) or len(need_data) == 0:
+            return 1
+        else:
+            return 0
 
 def find_fio():
     global table
@@ -390,7 +404,7 @@ def find_fio():
     for i in range(1, len(names)):
         if check_containing(need_name, str(names[i])) + check_containing(need_last_name, str(last_names[i])) + check_containing(need_surname, str(surnames[i])) == 3:
             table.insert('', tk.END, values=list(df.iloc[i]))  
-
+# Создание главного окна б/с пацукова покровское
 def find_places():
     global df
     global data_for_place
@@ -403,12 +417,11 @@ def find_places():
     sectors = list(df['Номер сектора могилы'])
     rows = list(df['Номер ряда могилы'])
     for i in range(1, len(cemeteries)):
-        if check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip().capitalize(), str(sectors[i])) + check_containing(data_for_place[2].get().strip().capitalize(), str(rows[i])) == 3:
+        if check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip(), str(sectors[i])) + check_containing(data_for_place[2].get().strip(), str(rows[i])) == 3:
             table.insert('', tk.END, values=list(df.iloc[i]))
             if str(df['Номер места могилы'][i]) != 'nan':
                 places.append(df['Номер места могилы'][i])
     places_combobox['values'] = places
-    # print(places)еж
 
 def find_by_place():
     global df
@@ -420,14 +433,13 @@ def find_by_place():
     rows = list(df['Номер ряда могилы'])
     places = list(df['Номер места могилы'])
     for i in range(1, len(cemeteries)):
-        if check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip().capitalize(), str(sectors[i])) + check_containing(data_for_place[2].get().strip().capitalize(), str(rows[i])) + check_containing(data_for_place[3].get().strip().capitalize(), str(places[i])) == 4:
+        if check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip(), str(sectors[i])) + check_containing(data_for_place[2].get().strip(), str(rows[i])) + check_containing(data_for_place[3].get().strip().capitalize(), str(places[i])) == 4:
             table.insert('', tk.END, values=list(df.iloc[i]))
-        elif check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip().capitalize(), str(sectors[i])) + check_containing(data_for_place[2].get().strip().capitalize(), str(rows[i])) + int(str(places[i]) == '1') == 4:
+        elif check_containing(data_for_place[0].get().strip().capitalize(), str(cemeteries[i])) + check_containing(data_for_place[1].get().strip(), str(sectors[i])) + check_containing(data_for_place[2].get().strip(), str(rows[i])) + int(str(places[i]) == '1') == 4:
             table.insert('', tk.END, values=list(df.iloc[i]))
-    # print(data_for_place[0].get())
 
 def open_main_window():
-    # Создание главного окна
+    # Создание главного окна б/с б/р пацукова покровское
     global name_entry
     global last_name_entry
     global surname_entry
@@ -453,7 +465,7 @@ def open_main_window():
     global places_combobox
     root = tk.Tk()
     root.title("Работа с эксель таблицами")
-    root.geometry("1250x440")
+    root.geometry("1684x443")
     label_bg_colors = 0xffffff
     PATH_output_file = ''
 
@@ -610,7 +622,7 @@ def open_main_window():
     certificate_number_entry = tk.Entry(frame_add, font= 20)
     certificate_number_entry.grid(row=1, column=3,sticky='we')
 
-    given_label = tk.Label(frame_add,
+    tk.Label(frame_add,
                     text="Каким ЗАГСом выдано",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
@@ -619,14 +631,32 @@ def open_main_window():
     given_entry = tk.Entry(frame_add, font= 20)
     given_entry.grid(row=2, column=3,sticky='we')
 
+    tk.Label(frame_add,
+                    text="Дата и номер кремации",
+                    anchor="e",
+                    bg= '#' + str(hex(label_bg_colors))[2:],
+                    font= 20
+                    ).grid(row=3, column=2, sticky='we')
+    cremation_entry = tk.Entry(frame_add, font= 20)
+    cremation_entry.grid(row=3, column=3,sticky='we')
+
+    tk.Label(frame_add,
+                    text="Регистрационный номер",
+                    anchor="e",
+                    bg= '#' + str(hex(label_bg_colors))[2:],
+                    font= 20
+                    ).grid(row=4, column=2, sticky='we')
+    registration_entry = tk.Entry(frame_add, font= 20)
+    registration_entry.grid(row=4, column=3,sticky='we')
+
     burial_label = tk.Label(frame_add,
                     text="Дата погребения",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=3, column=2, sticky='we')
+                    ).grid(row=5, column=2, sticky='we')
     burial_entry = tk.Entry(frame_add, font= 20)
-    burial_entry.grid(row=3, column=3,sticky='we')
+    burial_entry.grid(row=5, column=3,sticky='we')
 
     cemetery_label = tk.Label(frame_add,
                     text="Кладбище",
@@ -634,63 +664,63 @@ def open_main_window():
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
                     )
-    cemetery_label.grid(row=4, column=2, sticky='we')
+    cemetery_label.grid(row=1, column=4, sticky='we')
     cemetery_entry = tk.Entry(frame_add, font= 20)
-    cemetery_entry.grid(row=4, column=3,sticky='we')
+    cemetery_entry.grid(row=1, column=5,sticky='we')
 
     sector_number_label = tk.Label(frame_add,
                     text="Номер сектора могилы",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=5, column=2, sticky='we')
+                    ).grid(row=2, column=4, sticky='we')
     sector_number_entry = tk.Entry(frame_add, font= 20)
-    sector_number_entry.grid(row=5, column=3,sticky='we')
+    sector_number_entry.grid(row=2, column=5,sticky='we')
 
     row_label = tk.Label(frame_add,
                     text="Номер ряда могилы",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=1, column=4, sticky='we')
+                    ).grid(row=3, column=4, sticky='we')
     row_entry = tk.Entry(frame_add, font= 20)
-    row_entry.grid(row=1, column=5,sticky='we')
+    row_entry.grid(row=3, column=5,sticky='we')
 
     place_number_label = tk.Label(frame_add,
                     text="Номер места могилы",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=2, column=4, sticky='we')
+                    ).grid(row=4, column=4, sticky='we')
     place_number_entry = tk.Entry(frame_add, font= 20)
-    place_number_entry.grid(row=2, column=5,sticky='we')
+    place_number_entry.grid(row=4, column=5,sticky='we')
 
     size_label = tk.Label(frame_add,
                     text="Размер отведенного участка",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=3, column=4, sticky='we')
+                    ).grid(row=5, column=4, sticky='we')
     size_entry = tk.Entry(frame_add, font= 20)
-    size_entry.grid(row=3, column=5,sticky='we')
+    size_entry.grid(row=5, column=5,sticky='we')
 
     digger_label = tk.Label(frame_add,
                     text="Фамилия землекопа",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=4, column=4, sticky='we')
+                    ).grid(row=1, column=6, sticky='we')
     digger_entry = tk.Entry(frame_add, font= 20)
-    digger_entry.grid(row=4, column=5,sticky='we')
+    digger_entry.grid(row=1, column=7,sticky='we')
 
     responsibility_label = tk.Label(frame_add,
                     text="Взявший ответственность",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=5, column=4, sticky='we')
+                    ).grid(row=2, column=6, sticky='we')
     responsibility_entry = tk.Entry(frame_add, font= 20)
-    responsibility_entry.grid(row=5, column=5,sticky='we')
+    responsibility_entry.grid(row=2, column=7,sticky='we')
 
     button_to_find = tk.Button(frame_find, 
                             text = "Найти по ФИО",
@@ -700,9 +730,9 @@ def open_main_window():
     button_to_add = tk.Button(frame_add, 
                             text = "Добавить",
                             command = add_fio,
-                            ).grid(row=6, column=0,sticky='we', columnspan=7)
+                            font=20
+                            ).grid(row=6, column=0,sticky='we', columnspan=8)
     
-
 
 
     last_name_label_add_old = tk.Label(frame_add_old,
@@ -771,14 +801,32 @@ def open_main_window():
     given_entry_old = tk.Entry(frame_add_old, font= 20)
     given_entry_old.grid(row=2, column=3,sticky='we')
 
+    tk.Label(frame_add_old,
+                    text="Дата и номер кремации",
+                    anchor="e",
+                    bg= '#' + str(hex(label_bg_colors))[2:],
+                    font= 20
+                    ).grid(row=3, column=2, sticky='we')
+    cremation_entry_old = tk.Entry(frame_add_old, font= 20)
+    cremation_entry_old.grid(row=3, column=3,sticky='we')
+
+    tk.Label(frame_add_old,
+                    text="Регистрационный номер",
+                    anchor="e",
+                    bg= '#' + str(hex(label_bg_colors))[2:],
+                    font= 20
+                    ).grid(row=4, column=2, sticky='we')
+    registration_entry_old = tk.Entry(frame_add_old, font= 20)
+    registration_entry_old.grid(row=4, column=3,sticky='we')
+
     burial_label_old = tk.Label(frame_add_old,
                     text="Дата погребения",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=3, column=2, sticky='we')
+                    ).grid(row=5, column=2, sticky='we')
     burial_entry_old = tk.Entry(frame_add_old, font= 20)
-    burial_entry_old.grid(row=3, column=3,sticky='we')
+    burial_entry_old.grid(row=5, column=3,sticky='we')
 
     cemetery_label_old = tk.Label(frame_add_old,
                     text="Кладбище",
@@ -786,73 +834,74 @@ def open_main_window():
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
                     )
-    cemetery_label_old.grid(row=4, column=2, sticky='we')
+    cemetery_label_old.grid(row=1, column=4, sticky='we')
     cemetery_entry_old = tk.Entry(frame_add_old, font= 20)
-    cemetery_entry_old.grid(row=4, column=3,sticky='we')
+    cemetery_entry_old.grid(row=1, column=5,sticky='we')
 
     sector_number_label_old = tk.Label(frame_add_old,
                     text="Номер сектора могилы",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=5, column=2, sticky='we')
+                    ).grid(row=2, column=4, sticky='we')
     sector_number_entry_old = tk.Entry(frame_add_old, font= 20)
-    sector_number_entry_old.grid(row=5, column=3,sticky='we')
+    sector_number_entry_old.grid(row=2, column=5,sticky='we')
 
     row_label_old = tk.Label(frame_add_old,
                     text="Номер ряда могилы",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=1, column=4, sticky='we')
+                    ).grid(row=3, column=4, sticky='we')
     row_entry_old = tk.Entry(frame_add_old, font= 20)
-    row_entry_old.grid(row=1, column=5,sticky='we')
+    row_entry_old.grid(row=3, column=5,sticky='we')
 
     place_number_label_old = tk.Label(frame_add_old,
                     text="Номер места могилы",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=2, column=4, sticky='we')
+                    ).grid(row=4, column=4, sticky='we')
     place_number_entry_old = tk.Entry(frame_add_old, font= 20)
-    place_number_entry_old.grid(row=2, column=5,sticky='we')
+    place_number_entry_old.grid(row=4, column=5,sticky='we')
 
     size_label_old = tk.Label(frame_add_old,
                     text="Размер отведенного участка",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=3, column=4, sticky='we')
+                    ).grid(row=5, column=4, sticky='we')
     size_entry_old = tk.Entry(frame_add_old, font= 20)
-    size_entry_old.grid(row=3, column=5,sticky='we')
+    size_entry_old.grid(row=5, column=5,sticky='we')
 
     digger_label_old = tk.Label(frame_add_old,
                     text="Фамилия землекопа",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=4, column=4, sticky='we')
+                    ).grid(row=1, column=6, sticky='we')
     digger_entry_old = tk.Entry(frame_add_old, font= 20)
-    digger_entry_old.grid(row=4, column=5,sticky='we')
+    digger_entry_old.grid(row=1, column=7,sticky='we')
 
     responsibility_label_old = tk.Label(frame_add_old,
                     text="Взявший ответственность",
                     anchor="e",
                     bg= '#' + str(hex(label_bg_colors))[2:],
                     font= 20
-                    ).grid(row=5, column=4, sticky='we')
+                    ).grid(row=2, column=6, sticky='we')
     responsibility_entry_old = tk.Entry(frame_add_old, font= 20)
-    responsibility_entry_old.grid(row=5, column=5,sticky='we')
+    responsibility_entry_old.grid(row=2, column=7,sticky='we')
 
     button_to_add_old = tk.Button(frame_add_old, 
                             text = "Добавить",
                             command = add_fio_old,
-                            ).grid(row=6, column=0,sticky='we', columnspan=7)
+                            font=20
+                            ).grid(row=6, column=0,sticky='we', columnspan=8)
 
-    entries = [last_name_entry_add, name_entry_add, surname_entry_add, age_entry, death_date_entry, certificate_number_entry, given_entry, 
+    entries = [last_name_entry_add, name_entry_add, surname_entry_add, age_entry, death_date_entry, certificate_number_entry, given_entry, cremation_entry, registration_entry,
             burial_entry, cemetery_entry, sector_number_entry, row_entry, place_number_entry, size_entry, digger_entry, responsibility_entry,  name_entry,  last_name_entry,  surname_entry]
 
-    entries_old = [last_name_entry_add_old, name_entry_add_old, surname_entry_add_old, age_entry_old, death_date_entry_old, certificate_number_entry_old, given_entry_old, 
+    entries_old = [last_name_entry_add_old, name_entry_add_old, surname_entry_add_old, age_entry_old, death_date_entry_old, certificate_number_entry_old, given_entry_old, cremation_entry_old, registration_entry_old,  
             burial_entry_old, cemetery_entry_old, sector_number_entry_old, row_entry_old, place_number_entry_old, size_entry_old, digger_entry_old, responsibility_entry_old]
     
     table = ttk.Treeview(columns=headers_list, show="headings")
